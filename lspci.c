@@ -117,6 +117,8 @@ scan_device(struct pci_dev *p)
     opt_domains = 1;
   if (!pci_filter_match(&filter, p))
     return NULL;
+
+  printf("[*] scan_device() - Filter match for %02x:%02x.%02x\n", p->bus, p->dev, p->func);
   d = xmalloc(sizeof(struct device));
   memset(d, 0, sizeof(*d));
   d->dev = p;
@@ -131,6 +133,7 @@ scan_device(struct pci_dev *p)
       seen_errors++;
       return NULL;
     }
+  printf("[*] scan_device() - Config block read correctly for %02x:%02x.%02x\n", p->bus, p->dev, p->func);
   if ((d->config[PCI_HEADER_TYPE] & 0x7f) == PCI_HEADER_TYPE_CARDBUS)
     {
       /* For cardbus bridges, we need to fetch 64 bytes more to get the
@@ -149,13 +152,18 @@ scan_devices(void)
   struct device *d;
   struct pci_dev *p;
 
+  printf("[*] scan_devices() - Scanning bus...\n");
   pci_scan_bus(pacc);
+  
   for (p=pacc->devices; p; p=p->next)
+  {
+    printf("[*] scan_device() - Scanning device %02x:%02x.%02x...\n", p->bus, p->dev, p->func);
     if (d = scan_device(p))
       {
 	d->next = first_dev;
 	first_dev = d;
       }
+  }
 }
 
 /*** Config space accesses ***/
@@ -906,6 +914,24 @@ show(void)
     show_device(d);
 }
 
+/*
+struct pci_filter {
+  int domain, bus, slot, func;
+  int vendor, device;
+};
+*/
+static void
+print_filter(struct pci_filter *filter)
+{
+  printf("[*] Filter\n");
+  printf("\tdomain : %d\n", filter->domain);
+  printf("\tbus    : %d\n", filter->bus);
+  printf("\tslot   : %d\n", filter->slot);
+  printf("\tfunc   : %d\n", filter->func);
+  printf("\tvendor : %d\n", filter->vendor);
+  printf("\tdevice : %d\n", filter->device);
+}
+
 /* Main */
 
 int
@@ -937,8 +963,16 @@ main(int argc, char **argv)
 	pacc->buscentric = 1;
 	break;
       case 's':
+  printf("[*] Filtering slot...\n");
 	if (msg = pci_filter_parse_slot(&filter, optarg))
 	  die("-s: %s", msg);
+  
+  //
+  // Print the filtered slot
+  //
+
+  print_filter(&filter);
+
 	break;
       case 'd':
 	if (msg = pci_filter_parse_id(&filter, optarg))
@@ -1001,17 +1035,23 @@ main(int argc, char **argv)
   if (opt_query_all)
     pacc->id_lookup_mode |= PCI_LOOKUP_NETWORK | PCI_LOOKUP_SKIP_LOCAL;
 
+  printf("[*] main() - Initializing PCI...\n");
   pci_init(pacc);
   if (opt_map_mode)
     map_the_bus();
   else
     {
+      printf("[*] main() - Scanning devices..\n");
       scan_devices();
+      printf("[*] main() - Sorting devices...\n");
       sort_them();
       if (opt_tree)
 	show_forest();
       else
-	show();
+      {
+        printf("[*] main() - Showing devices..\n");
+      	show();
+      }
     }
   pci_cleanup(pacc);
 

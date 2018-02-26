@@ -178,12 +178,14 @@ pci_init(struct pci_access *a)
 
   if (a->method)
     {
+      printf("[*] pci method provided...\n");
       if (a->method >= PCI_ACCESS_MAX || !pci_methods[a->method])
 	a->error("This access method is not supported.");
       a->methods = pci_methods[a->method];
     }
   else
     {
+      printf("[*] meh tring to find pci method..\n");
       unsigned int i;
       for (i=0; i<PCI_ACCESS_MAX; i++)
 	if (pci_methods[i])

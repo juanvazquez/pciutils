@@ -17,6 +17,7 @@ pci_generic_scan_bus(struct pci_access *a, byte *busmap, int bus)
   struct pci_dev *t;
 
   a->debug("Scanning bus %02x for devices...\n", bus);
+  printf("[*] pci_generic_scan_bus() - Scanning bus %02x for devices...\n", bus);
   if (busmap[bus])
     {
       a->warning("Bus %02x seen twice (firmware bug). Ignored.", bus);
@@ -52,6 +53,7 @@ pci_generic_scan_bus(struct pci_access *a, byte *busmap, int bus)
 	  switch (ht)
 	    {
 	    case PCI_HEADER_TYPE_NORMAL:
+        printf("[*] pci_generic_scan_bus() - PCI_HEADER_TYPE found at %02x:%02x.%02x\n", d->bus, d->dev, d->func);
 	      break;
 	    case PCI_HEADER_TYPE_BRIDGE:
 	    case PCI_HEADER_TYPE_CARDBUS:
@@ -68,6 +70,7 @@ pci_generic_scan_bus(struct pci_access *a, byte *busmap, int bus)
 void
 pci_generic_scan(struct pci_access *a)
 {
+  printf("[*] pci_generic_scan() - Specific intel method\n");
   byte busmap[256];
 
   memset(busmap, 0, sizeof(busmap));

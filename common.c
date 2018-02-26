@@ -120,6 +120,7 @@ parse_generic_option(int i, struct pci_access *pacc, char *optarg)
       break;
 #endif
     case 'A':
+      printf("[*] Setting pci method...\n");
       set_pci_method(pacc, optarg);
       break;
     case 'G':
